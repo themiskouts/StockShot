@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>StockShot - Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .container {
+            position: relative;
+        }
+
+        .auth-top-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.2s ease, transform 0.1s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .auth-top-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .calculator-box {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .calc-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .calc-input input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .calc-result {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .calc-result.show {
+            display: block;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .result-value {
+            font-size: 28px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        .nav-buttons button.active {
+            background: #764ba2;
+        }
+
+        .nav-buttons button:not(.active) {
+            background: #ddd;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="login.html" class="auth-top-btn">Login / Sign Up</a>
+
+        <h1>📈 StockShot</h1>
+        <p class="subtitle">Your Stock Predictor & Calculator</p>
+
+        <div class="nav-buttons">
+            <button class="active" onclick="showTab('search')">Stock Search</button>
+            <button onclick="showTab('calculator')">Profit/Loss Calculator</button>
+            <button onclick="showTab('prediction')">Price Prediction</button>
+        </div>
+
+        <div id="search-tab">
+            <div class="search-box">
+                <input type="text" id="stockInput" placeholder="Enter stock symbol (e.g., AAPL, MSFT)" />
+                <button onclick="searchStock()">Search</button>
+            </div>
+            
+            <div class="stock-info" id="stockInfo">
+                <div class="stock-symbol" id="symbol"></div>
+                <div class="stock-price" id="price"></div>
+                <div class="stock-change">
+                    Change: <span id="change"></span>
+                </div>
+                <div class="stock-change">
+                    Change %: <span id="changePercent"></span>
+                </div>
+            </div>
+        </div>
+
+        <div id="calculator-tab" style="display: none;">
+            <div class="calculator-box">
+                <h3 style="margin-bottom: 15px; color: #333;">Calculate Profit/Loss</h3>
+                
+                <div class="calc-input">
+                    <input type="number" id="buyPrice" placeholder="Buy Price ($)" />
+                    <input type="number" id="sellPrice" placeholder="Sell Price ($)" />
+                    <button onclick="useLivePrice()" style="padding: 10px 15px; font-size: 14px;">Use Live Price</button>
+                </div>
+
+                <div class="calc-input">
+                    <input type="number" id="quantity" placeholder="Quantity (shares)" />
+                    <button onclick="calculateProfit()">Calculate</button>
+                </div>
+
+                <div class="calc-result" id="profitResult">
+                    <div class="result-label">Total Profit/Loss</div>
+                    <div class="result-value" id="profitValue">$0.00</div>
+                    <div class="result-label" style="margin-top: 10px;">Profit/Loss %</div>
+                    <div class="result-value" id="profitPercent" style="color: #27ae60;">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="prediction-tab" style="display: none;">
+            <div class="calculator-box">
+                <h3 style="margin-bottom: 15px; color: #333;">📊 Price Prediction</h3>
+                
+                <div class="calc-input">
+                    <input type="text" id="predictionSymbol" placeholder="Enter stock symbol (e.g., AAPL)" />
+                    <button onclick="getPrediction()">Predict</button>
+                </div>
+
+                <div class="calc-result" id="predictionResult">
+                    <div class="result-label">Prediction</div>
+                    <div class="result-value" id="predictionDirection">-</div>
+                    <div class="result-label" style="margin-top: 10px;">Confidence</div>
+                    <div class="result-value" id="predictionConfidence" style="color: #667eea;">-</div>
+                    <div class="result-label" style="margin-top: 10px;">Recent Change</div>
+                    <div class="result-value" id="predictionChange" style="color: #667eea;">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function useLivePrice() {
+            const priceText = document.getElementById('price').textContent;
+            if (!priceText) {
+                alert('Please search a stock first!');
+                return;
+            }
+    
+            const price = parseFloat(priceText.replace('$', ''));
+            document.getElementById('buyPrice').value = price;
+            showTab('calculator');
+        }
+
+        function showTab(tab) {
+            document.getElementById('search-tab').style.display = tab === 'search' ? 'block' : 'none';
+            document.getElementById('calculator-tab').style.display = tab === 'calculator' ? 'block' : 'none';
+            document.getElementById('prediction-tab').style.display = tab === 'prediction' ? 'block' : 'none';
+            document.querySelectorAll('.nav-buttons button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        async function searchStock() {
+            const input = document.getElementById('stockInput').value.toUpperCase();
+            if (!input) {
+                alert('Please enter a stock symbol');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/stock/${input}`);
+                const data = await response.json();
+
+                if (!data.symbol) {
+                    alert('Stock not found');
+                    return;
+                }
+
+                document.getElementById('symbol').textContent = data.symbol;
+                document.getElementById('price').textContent = `$${data.price}`;
+                
+                const changeElement = document.getElementById('change');
+                const changePercentElement = document.getElementById('changePercent');
+                
+                changeElement.textContent = data.change;
+                changePercentElement.textContent = data.changePercent;
+
+                const isPositive = parseFloat(data.change) >= 0;
+                changeElement.className = isPositive ? 'change-positive' : 'change-negative';
+                changePercentElement.className = isPositive ? 'change-positive' : 'change-negative';
+
+                document.getElementById('stockInfo').classList.add('show');
+            } catch (error) {
+                alert('Error fetching stock data');
+            }
+        }
+
+        function calculateProfit() {
+            const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+            const quantity = parseFloat(document.getElementById('quantity').value);
+
+            if (!buyPrice || !sellPrice || !quantity) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            const profitPerShare = sellPrice - buyPrice;
+            const totalProfit = profitPerShare * quantity;
+            const profitPercent = ((profitPerShare / buyPrice) * 100).toFixed(2);
+
+            document.getElementById('profitValue').textContent = `$${totalProfit.toFixed(2)}`;
+            document.getElementById('profitPercent').textContent = `${profitPercent}%`;
+
+            const isPositive = totalProfit >= 0;
+            document.getElementById('profitValue').className = 'result-value ' + (isPositive ? 'change-positive' : 'change-negative');
+            document.getElementById('profitPercent').className = 'result-value ' + (isPositive ? 'change-positive' : 'change-negative');
+
+            document.getElementById('profitResult').classList.add('show');
+        }
+
+        document.getElementById('stockInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchStock();
+        });
+
+        async function getPrediction() {
+            const symbol = document.getElementById('predictionSymbol').value.toUpperCase();
+            if (!symbol) {
+                alert('Please enter a stock symbol');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/predict/${symbol}`);
+                const data = await response.json();
+
+                if (!data || !data.direction) {
+                    alert('Could not get prediction data');
+                    return;
+                }
+
+                document.getElementById('predictionDirection').textContent = data.direction;
+                document.getElementById('predictionConfidence').textContent = data.confidence.toFixed(0) + '%';
+                document.getElementById('predictionChange').textContent = data.change + '%';
+
+                const directionElement = document.getElementById('predictionDirection');
+                if (data.direction === 'UP') {
+                    directionElement.className = 'result-value change-positive';
+                } else if (data.direction === 'DOWN') {
+                    directionElement.className = 'result-value change-negative';
+                } else {
+                    directionElement.className = 'result-value';
+                }
+
+                document.getElementById('predictionResult').classList.add('show');
+            } catch (error) {
+                alert('Error getting prediction');
+                console.log(error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const predictionInput = document.getElementById('predictionSymbol');
+            if (predictionInput) {
+                predictionInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') getPrediction();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
