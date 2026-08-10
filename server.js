@@ -90,3 +90,5 @@ app.post('/api/auth/login', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 StockShot running at http://localhost:${PORT}`);
 });
+// At the very bottom of your server.js:
+module.exports = app;
