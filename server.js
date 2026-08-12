@@ -3,7 +3,6 @@ const path = require('path');
 require('dotenv').config();
 
 const getStockPrice = require('./fetchStock');
-const { register, login } = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +16,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Added: Explicit login route so http://localhost:3000/login works!
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'login.html'));
 });
@@ -63,32 +61,9 @@ app.get('/api/predict/:symbol', async (req, res) => {
     });
 });
 
-// Auth Endpoints
-app.post('/api/auth/register', async (req, res) => {
-    const { email, password } = req.body;
-    const result = await register(email, password);
-    
-    if (result.success) {
-        res.json(result);
-    } else {
-        res.status(400).json(result);
-    }
-});
-
-app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
-    const result = await login(email, password);
-
-    if (result.success) {
-        res.json(result);
-    } else {
-        res.status(401).json(result);
-    }
-});
-
 // Start Server
 app.listen(PORT, () => {
     console.log(`🚀 StockShot running at http://localhost:${PORT}`);
 });
-// At the very bottom of your server.js:
+
 module.exports = app;
