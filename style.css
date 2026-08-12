@@ -61,7 +61,7 @@ body::before {
 }
 
 .container {
-  background: rgba(255, 255, 255, 0.95);
+  background: #ffffff;
   border-radius: 20px;
   padding: 50px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), 

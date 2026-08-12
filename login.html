@@ -4,86 +4,11 @@
     <title>StockShot - Login</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .auth-container {
-            max-width: 400px;
-            position: relative;
-        }
-
-        /* Back button styling */
-        .back-link {
-            display: inline-block;
-            margin-bottom: 15px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .back-link:hover {
-            color: #764ba2;
-            transform: translateX(-4px);
-        }
-
-        .auth-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            color: #333;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group input {
-            padding: 14px 18px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
-        }
-
-        .auth-button {
-            padding: 14px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .auth-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5);
-        }
-
         .toggle-text {
             text-align: center;
             color: #666;
             font-size: 14px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
 
         .toggle-text a {
@@ -97,6 +22,85 @@
             text-decoration: underline;
         }
 
+        .password-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-container input {
+            flex: 1;
+            padding-right: 50px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .password-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .eye-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .eye-icon::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 12px;
+            border: 2px solid #555;
+            border-radius: 50%;
+        }
+
+        .eye-icon::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #555;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .password-toggle.hidden .eye-icon::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 12px;
+            border: 2px solid #555;
+            border-radius: 50%;
+        }
+
+        .password-toggle.hidden .eye-icon::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 25px;
+            background-color: #555;
+            border-radius: 0;
+            z-index: 1;
+            transform: rotate(-45deg);
+        }
+
         .message {
             padding: 12px;
             border-radius: 8px;
@@ -104,6 +108,7 @@
             margin-bottom: 15px;
             display: none;
             font-weight: 600;
+            font-size: 14px;
         }
 
         .message.success {
@@ -121,157 +126,117 @@
         #signup-form {
             display: none;
         }
+
+        .auth-button {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .subtitle-custom {
+            color: #999;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 16px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
     <div class="container auth-container">
-        <a href="/" class="back-link">← Back to Search</a>
-
-        <h1>📈 StockShot</h1>
-        <p class="subtitle">Stock Predictor & Calculator</p>
-
-        <div id="message" class="message"></div>
-
-        <div id="login-form">
-            <h3 style="text-align: center; margin-bottom: 20px;">Login</h3>
-            <div class="auth-form">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="loginEmail" placeholder="your@email.com" />
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password" />
-                </div>
-                <button class="auth-button" onclick="handleLogin()">Login</button>
+        <!-- Login Form -->
+        <div id="login-form" class="auth-form">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="stockshot-logo.png" alt="StockShot Logo" style="height: 100px; width: auto;">
             </div>
+            <p class="subtitle-custom">Your Stock Predictor & Calculator</p>
+
+            <div id="login-message" class="message"></div>
+
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="login-password" placeholder="Enter your password" />
+                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility('login-password', this)"><div class="eye-icon"></div></button>
+                </div>
+            </div>
+
+            <button class="auth-button" onclick="handleLogin()">Login</button>
+
             <div class="toggle-text">
-                Don't have an account? <a onclick="toggleForm()">Sign Up</a>
+                Don't have an account? <a onclick="toggleAuthForm()">Sign Up</a>
             </div>
         </div>
 
-        <div id="signup-form">
-            <h3 style="text-align: center; margin-bottom: 20px;">Sign Up</h3>
-            <div class="auth-form">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="signupEmail" placeholder="your@email.com" />
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="signupPassword" placeholder="Create a password" />
-                </div>
-                <div class="form-group">
-                    <label>Confirm Password</label>
-                    <input type="password" id="signupPasswordConfirm" placeholder="Confirm password" />
-                </div>
-                <button class="auth-button" onclick="handleSignup()">Sign Up</button>
+        <!-- Sign Up Form -->
+        <div id="signup-form" class="auth-form">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <img src="stockshot-logo.png" alt="StockShot Logo" style="height: 100px; width: auto;">
             </div>
+            <p class="subtitle-custom">Create Your Account</p>
+
+            <div id="signup-message" class="message"></div>
+
+            <div class="form-group">
+                <label for="signup-email">Email</label>
+                <input type="email" id="signup-email" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+                <label for="signup-password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="signup-password" placeholder="Enter your password (min 6 chars)" />
+                    <button type="button" class="password-toggle" onclick="togglePasswordVisibility('signup-password', this)"><div class="eye-icon"></div></button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="signup-confirm-password">Confirm Password</label>
+                <input type="password" id="signup-confirm-password" placeholder="Confirm your password" />
+            </div>
+
+            <button class="auth-button" onclick="handleSignUp()">Sign Up</button>
+
             <div class="toggle-text">
-                Already have an account? <a onclick="toggleForm()">Login</a>
+                Already have an account? <a onclick="toggleAuthForm()">Login</a>
             </div>
         </div>
     </div>
 
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+    
+    <!-- Your Auth Script -->
+    <script src="auth.js"></script>
+    
     <script>
-        function toggleForm() {
-            document.getElementById('login-form').style.display = 
-                document.getElementById('login-form').style.display === 'none' ? 'block' : 'none';
-            document.getElementById('signup-form').style.display = 
-                document.getElementById('signup-form').style.display === 'none' ? 'block' : 'none';
-            document.getElementById('message').className = 'message';
-        }
-
-        function showMessage(text, type) {
-            const msg = document.getElementById('message');
-            msg.textContent = text;
-            msg.className = `message ${type}`;
-            setTimeout(() => {
-                msg.className = 'message';
-            }, 5000);
-        }
-
-        async function handleLogin() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
-            if (!email || !password) {
-                showMessage('Please fill in all fields', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    localStorage.setItem('token', data.token);
-                    showMessage('Login successful! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 1500);
-                } else {
-                    showMessage(data.message, 'error');
-                }
-            } catch (error) {
-                showMessage('Login error', 'error');
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                button.classList.remove('hidden');
+            } else {
+                input.type = "password";
+                button.classList.add('hidden');
             }
         }
-
-        async function handleSignup() {
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
-
-            if (!email || !password || !passwordConfirm) {
-                showMessage('Please fill in all fields', 'error');
-                return;
-            }
-
-            if (password !== passwordConfirm) {
-                showMessage('Passwords do not match', 'error');
-                return;
-            }
-
-            if (password.length < 6) {
-                showMessage('Password must be at least 6 characters', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    showMessage('Account created! Please login', 'success');
-                    setTimeout(() => {
-                        toggleForm();
-                    }, 1500);
-                } else {
-                    showMessage(data.message, 'error');
-                }
-            } catch (error) {
-                showMessage('Signup error', 'error');
-            }
-        }
-
-        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') handleLogin();
-        });
-
-        document.getElementById('signupPasswordConfirm').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') handleSignup();
-        });
     </script>
 </body>
 </html>
