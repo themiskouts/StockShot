@@ -9,9 +9,23 @@ const firebaseConfig = {
   measurementId: "G-V0ZMMK1JF5"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+// Wait for Firebase to load before initializing
+if (typeof firebase !== 'undefined') {
+  firebase.initializeApp(firebaseConfig);
+}
+
+let auth = null;
+
+// Get auth after Firebase loads
+function getAuth() {
+  if (typeof firebase !== 'undefined' && firebase.auth) {
+    if (!auth) {
+      auth = firebase.auth();
+    }
+    return auth;
+  }
+  return null;
+}
 
 // Show/Hide Password Toggle
 function togglePasswordVisibility(inputId, button) {
@@ -27,6 +41,12 @@ function togglePasswordVisibility(inputId, button) {
 
 // Sign Up Function
 async function handleSignUp() {
+  const auth = getAuth();
+  if (!auth) {
+    showMessage("signup-message", "Firebase not loaded. Please refresh.", "error");
+    return;
+  }
+
   const email = document.getElementById("signup-email").value.trim();
   const password = document.getElementById("signup-password").value;
   const confirmPassword = document.getElementById("signup-confirm-password").value;
@@ -81,6 +101,12 @@ async function handleSignUp() {
 
 // Login Function
 async function handleLogin() {
+  const auth = getAuth();
+  if (!auth) {
+    showMessage("login-message", "Firebase not loaded. Please refresh.", "error");
+    return;
+  }
+
   const email = document.getElementById("login-email").value.trim();
   const password = document.getElementById("login-password").value;
 
@@ -116,12 +142,15 @@ async function handleLogin() {
 
 // Logout Function
 function handleLogout() {
-  auth.signOut().then(() => {
-    console.log("Logged out");
-    window.location.href = "login.html";
-  }).catch((error) => {
-    console.error("Logout error:", error);
-  });
+  const auth = getAuth();
+  if (auth) {
+    auth.signOut().then(() => {
+      console.log("Logged out");
+      window.location.href = "login.html";
+    }).catch((error) => {
+      console.error("Logout error:", error);
+    });
+  }
 }
 
 // Display Message
@@ -156,25 +185,27 @@ function toggleAuthForm() {
 
 // Check if user is logged in
 window.addEventListener("load", () => {
-  auth.onAuthStateChanged((user) => {
-    if (user) {
-      console.log("User is logged in:", user.email);
-      
-      if (window.location.pathname.includes("login.html")) {
-        window.location.href = "index.html";
+  const auth = getAuth();
+  if (auth) {
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log("User is logged in:", user.email);
+        if (window.location.pathname.includes("login.html")) {
+          window.location.href = "index.html";
+        }
+      } else {
+        console.log("User is not logged in");
+        if (window.location.pathname.includes("index.html") || 
+            window.location.pathname.includes("calculator.html")) {
+          window.location.href = "login.html";
+        }
       }
-    } else {
-      console.log("User is not logged in");
-      
-      if (window.location.pathname.includes("index.html") || 
-          window.location.pathname.includes("calculator.html")) {
-        window.location.href = "login.html";
-      }
-    }
-  });
+    });
+  }
 });
 
 // Get current user
 function getCurrentUser() {
-  return auth.currentUser;
+  const auth = getAuth();
+  return auth ? auth.currentUser : null;
 }
