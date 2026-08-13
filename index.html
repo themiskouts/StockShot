@@ -146,12 +146,12 @@
                 </div>
 
                 <div class="calc-result" id="predictionResult">
-                    <div class="result-label">Prediction</div>
+                    <div class="result-label">Predicted Change (next 5 trading days)</div>
                     <div class="result-value" id="predictionDirection">-</div>
                     <div class="result-label" style="margin-top: 10px;">Confidence</div>
                     <div class="result-value" id="predictionConfidence" style="color: #667eea;">-</div>
-                    <div class="result-label" style="margin-top: 10px;">Recent Change</div>
-                    <div class="result-value" id="predictionChange" style="color: #667eea;">-</div>
+                    <div class="result-label" style="margin-top: 10px; display: none;" id="earningsWarningLabel">⚠️ Earnings Risk</div>
+                    <div class="result-value" id="earningsWarning" style="color: #e67e22; display: none;">Report coming soon — expect extra volatility</div>
                 </div>
             </div>
         </div>
@@ -444,34 +444,43 @@
             }
 
             try {
-                
-
-                // Fetch prediction data
                 const response = await fetch(`/api/predict/${symbol}`);
                 const data = await response.json();
 
-                if (!data || !data.direction) {
+                if (!data || data.predictedChangePercent === undefined) {
                     alert('Could not get prediction data');
                     return;
                 }
 
-                document.getElementById('predictionDirection').textContent = data.direction;
-                document.getElementById('predictionConfidence').textContent = data.confidence.toFixed(0) + '%';
-                document.getElementById('predictionChange').textContent = data.change + '%';
-
+                const changeVal = data.predictedChangePercent;
                 const directionElement = document.getElementById('predictionDirection');
-                if (data.direction === 'UP') {
+
+                directionElement.textContent = (changeVal >= 0 ? '+' : '') + changeVal + '%';
+
+                if (changeVal > 0) {
                     directionElement.className = 'result-value change-positive';
-                } else if (data.direction === 'DOWN') {
+                } else if (changeVal < 0) {
                     directionElement.className = 'result-value change-negative';
                 } else {
                     directionElement.className = 'result-value';
                 }
 
+                document.getElementById('predictionConfidence').textContent = data.confidence + '%';
+
+                const earningsLabel = document.getElementById('earningsWarningLabel');
+                const earningsWarning = document.getElementById('earningsWarning');
+                if (data.earningsRisk) {
+                    earningsLabel.style.display = 'block';
+                    earningsWarning.style.display = 'block';
+                } else {
+                    earningsLabel.style.display = 'none';
+                    earningsWarning.style.display = 'none';
+                }
+
                 document.getElementById('predictionResult').classList.add('show');
             } catch (error) {
                 alert('Error getting prediction');
-                console.log('Prediction error:', error);
+                console.log(error);
             }
         }
 
