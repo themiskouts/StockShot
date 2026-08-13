@@ -2,17 +2,20 @@ const axios = require('axios');
 require('dotenv').config();
 
 async function getStockPrice(symbol) {
-  const apiKey = process.env.ALPHA_VANTAGE_API_KEY;
-  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
-  
+  const apiKey = process.env.FINNHUB_API_KEY;
+  const url = `https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`;
+
   try {
     const response = await axios.get(url);
-    const data = response.data['Global Quote'];
+    const data = response.data;
+
+    if (!data || data.c === 0) return null;
+
     return {
-      symbol: data['01. symbol'],
-      price: data['05. price'],
-      change: data['09. change'],
-      changePercent: data['10. change percent']
+      symbol: symbol,
+      price: data.c.toFixed(2),
+      change: data.d ? data.d.toFixed(2) : '0.00',
+      changePercent: data.dp ? data.dp.toFixed(2) + '%' : '0.00%'
     };
   } catch (error) {
     console.log('Error fetching stock:', error);
@@ -20,4 +23,4 @@ async function getStockPrice(symbol) {
   }
 }
 
-module.exports = getStockPrice;
+module.exports = getStockPrice; 

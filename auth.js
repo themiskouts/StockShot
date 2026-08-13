@@ -185,20 +185,13 @@ function toggleAuthForm() {
 
 // Check if user is logged in
 window.addEventListener("load", () => {
-  const auth = getAuth();
-  if (auth) {
-    auth.onAuthStateChanged((user) => {
+  const authInstance = getAuth();
+  if (authInstance) {
+    authInstance.onAuthStateChanged((user) => {
       if (user) {
         console.log("User is logged in:", user.email);
-        if (window.location.pathname.includes("login.html")) {
-          window.location.href = "index.html";
-        }
       } else {
         console.log("User is not logged in");
-        if (window.location.pathname.includes("index.html") || 
-            window.location.pathname.includes("calculator.html")) {
-          window.location.href = "login.html";
-        }
       }
     });
   }

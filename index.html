@@ -1,106 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>StockShot</title>
+    <title>StockShot - Calculator</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .container {
-            position: relative;
-        }
-
-        .auth-top-btn {
-            position: absolute;
+        .top-right-container {
+            position: fixed;
             top: 20px;
             right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .auth-button-top {
             background: #667eea;
             color: white;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
             font-size: 14px;
-            transition: background 0.2s ease, transform 0.1s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
 
-        .auth-top-btn:hover {
+        .auth-button-top:hover {
             background: #5a67d8;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
         }
 
-        .calculator-box {
-            background: #f9f9f9;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 20px;
-        }
-
-        .calc-input {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .calc-input input {
-            flex: 1;
-            padding: 10px;
-            border: 2px solid #ddd;
+        .user-status {
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
             border-radius: 8px;
-        }
-
-        .calc-result {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .calc-result.show {
-            display: block;
-        }
-
-        .result-label {
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
-        }
-
-        .result-value {
-            font-size: 28px;
-            color: #667eea;
             font-weight: bold;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .nav-buttons button {
-            flex: 1;
-            padding: 10px;
             font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .nav-buttons button.active {
-            background: #764ba2;
+        .user-status.guest {
+            background: #667eea;
         }
 
-        .nav-buttons button:not(.active) {
-            background: #ddd;
-            color: #333;
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="login.html" class="auth-top-btn">Login / Sign Up</a>
+    <!-- Top Right Container -->
+    <div class="top-right-container">
+        <div id="user-status" class="user-status guest">Guest</div>
+        <a href="login.html" id="login-signup-btn" class="auth-button-top">Login / Sign Up</a>
+        <button id="logout-btn" class="logout-btn" onclick="handleLogout()" style="display: none;">Logout</button>
+    </div>
 
-        <div style="text-align: center; margin-bottom: 20px;">
-            <img src="stockshot-logo.png" alt="StockShot Logo" style="height: 120px; width: auto;">
+    <div class="container">
+        <div class="logo-container">
+            <img src="stockshot-logo.png" alt="StockShot Logo" style="height: 130px; width: auto;">
         </div>
         <p class="subtitle">Your Stock Predictor & Calculator</p>
 
@@ -111,11 +87,13 @@
         </div>
 
         <div id="search-tab">
-            <div class="search-box">
-                <input type="text" id="stockInput" placeholder="Enter stock symbol (e.g., AAPL, MSFT)" />
-                <button onclick="searchStock()">Search</button>
+            <div class="search-box-wrapper">
+                <div class="search-box">
+                    <input type="text" id="stockInput" placeholder="Enter stock symbol (e.g., AAPL, MSFT)" autocomplete="off" style="width: 100%;" />
+                </div>
+                <div class="suggestions-dropdown" id="suggestionsDropdown"></div>
             </div>
-            
+
             <div class="stock-info" id="stockInfo">
                 <div class="stock-symbol" id="symbol"></div>
                 <div class="stock-price" id="price"></div>
@@ -124,6 +102,9 @@
                 </div>
                 <div class="stock-change">
                     Change %: <span id="changePercent"></span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priceChart" height="220"></canvas>
                 </div>
             </div>
         </div>
@@ -156,9 +137,12 @@
             <div class="calculator-box">
                 <h3 style="margin-bottom: 15px; color: #333;">📊 Price Prediction</h3>
                 
-                <div class="calc-input">
-                    <input type="text" id="predictionSymbol" placeholder="Enter stock symbol (e.g., AAPL)" />
-                    <button onclick="getPrediction()">Predict</button>
+                <div class="search-box-wrapper">
+                    <div class="calc-input">
+                        <input type="text" id="predictionSymbol" placeholder="Enter stock symbol (e.g., AAPL)" autocomplete="off" />
+                        <button onclick="getPrediction()">Predict</button>
+                    </div>
+                    <div class="suggestions-dropdown" id="predictionSuggestionsDropdown"></div>
                 </div>
 
                 <div class="calc-result" id="predictionResult">
@@ -172,6 +156,13 @@
             </div>
         </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
+    <!-- Your Auth Script -->
+    <script src="auth.js"></script>
 
     <script>
         function useLivePrice() {
@@ -203,6 +194,8 @@
                 return;
             }
 
+            hideSuggestions();
+
             try {
                 const response = await fetch(`/api/stock/${input}`);
                 const data = await response.json();
@@ -214,10 +207,10 @@
 
                 document.getElementById('symbol').textContent = data.symbol;
                 document.getElementById('price').textContent = `$${data.price}`;
-                
+
                 const changeElement = document.getElementById('change');
                 const changePercentElement = document.getElementById('changePercent');
-                
+
                 changeElement.textContent = data.change;
                 changePercentElement.textContent = data.changePercent;
 
@@ -226,8 +219,64 @@
                 changePercentElement.className = isPositive ? 'change-positive' : 'change-negative';
 
                 document.getElementById('stockInfo').classList.add('show');
+
+                renderPriceChart(data.symbol);
             } catch (error) {
                 alert('Error fetching stock data');
+            }
+        }
+
+        let priceChartInstance = null;
+
+        async function renderPriceChart(symbol) {
+            try {
+                const response = await fetch(`/api/history/${symbol}`);
+                if (!response.ok) return;
+                const history = await response.json();
+
+                if (!Array.isArray(history) || history.length === 0) return;
+
+                const labels = history.map(point => point.date.slice(5));
+                const closes = history.map(point => point.close);
+                const trendPositive = closes[closes.length - 1] >= closes[0];
+
+                const ctx = document.getElementById('priceChart').getContext('2d');
+
+                if (priceChartInstance) {
+                    priceChartInstance.destroy();
+                }
+
+                priceChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: `${symbol} Close Price`,
+                            data: closes,
+                            borderColor: trendPositive ? '#27ae60' : '#e74c3c',
+                            backgroundColor: trendPositive ? 'rgba(39, 174, 96, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 0,
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: value => `$${value}`
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.log('Error rendering chart:', error);
             }
         }
 
@@ -255,8 +304,136 @@
             document.getElementById('profitResult').classList.add('show');
         }
 
-        document.getElementById('stockInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchStock();
+        const stockInputEl = document.getElementById('stockInput');
+        const suggestionsDropdown = document.getElementById('suggestionsDropdown');
+
+        let debounceTimer = null;
+        let searchRequestId = 0;
+        let activeSuggestionIndex = -1;
+        let currentSuggestions = [];
+
+        function initialsAvatar(symbol) {
+            const letter = (symbol || '?').charAt(0).toUpperCase();
+            const colors = ['#667eea', '#e74c3c', '#27ae60', '#f39c12', '#8e44ad', '#16a085'];
+            const color = colors[letter.charCodeAt(0) % colors.length];
+            return `<div class="suggestion-avatar" style="background:${color}">${letter}</div>`;
+        }
+
+        function renderSuggestions(items) {
+            currentSuggestions = items;
+            activeSuggestionIndex = -1;
+
+            if (!items || items.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestionsDropdown.innerHTML = items.map((item, index) => {
+                const hasPrice = typeof item.price === 'number' && !isNaN(item.price);
+                const isUp = item.isUp;
+                const priceClass = hasPrice ? (isUp ? 'change-positive' : 'change-negative') : '';
+                const arrow = hasPrice ? (isUp ? '▲' : '▼') : '';
+                const priceText = hasPrice ? `$${item.price.toFixed(2)}` : '';
+
+                const logo = item.logo
+                    ? `<img class="suggestion-avatar" src="${item.logo}" alt="${item.symbol}" onerror="this.outerHTML = window.__initialsAvatar('${item.symbol.replace(/'/g, "")}')" />`
+                    : initialsAvatar(item.symbol);
+
+                return `
+                    <div class="suggestion-item" data-index="${index}" onclick="selectSuggestion(${index})">
+                        ${logo}
+                        <div class="suggestion-info">
+                            <div class="suggestion-symbol">${item.symbol}</div>
+                            <div class="suggestion-name">${item.name}</div>
+                        </div>
+                        <div class="suggestion-price ${priceClass}">${priceText} ${arrow}</div>
+                    </div>
+                `;
+            }).join('');
+
+            suggestionsDropdown.classList.add('show');
+        }
+
+        window.__initialsAvatar = function(symbol) {
+            return initialsAvatar(symbol);
+        };
+
+        function hideSuggestions() {
+            suggestionsDropdown.classList.remove('show');
+            suggestionsDropdown.innerHTML = '';
+            currentSuggestions = [];
+            activeSuggestionIndex = -1;
+        }
+
+        function selectSuggestion(index) {
+            const item = currentSuggestions[index];
+            if (!item) return;
+            stockInputEl.value = item.symbol;
+            hideSuggestions();
+            searchStock();
+        }
+
+        function updateActiveSuggestion() {
+            const rows = suggestionsDropdown.querySelectorAll('.suggestion-item');
+            rows.forEach((row, i) => {
+                row.classList.toggle('active', i === activeSuggestionIndex);
+            });
+        }
+
+        async function fetchSuggestions(query) {
+            const requestId = ++searchRequestId;
+            try {
+                const response = await fetch(`/api/search/${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (requestId !== searchRequestId) return;
+                if (Array.isArray(data)) {
+                    renderSuggestions(data.slice(0, 5));
+                }
+            } catch (error) {
+                console.log('Error fetching suggestions:', error);
+            }
+        }
+
+        stockInputEl.addEventListener('input', function() {
+            const query = stockInputEl.value.trim();
+            clearTimeout(debounceTimer);
+
+            if (!query) {
+                hideSuggestions();
+                return;
+            }
+
+            debounceTimer = setTimeout(() => fetchSuggestions(query), 350);
+        });
+
+        stockInputEl.addEventListener('keydown', function(e) {
+            const rows = suggestionsDropdown.querySelectorAll('.suggestion-item');
+
+            if (e.key === 'ArrowDown' && rows.length > 0) {
+                e.preventDefault();
+                activeSuggestionIndex = Math.min(activeSuggestionIndex + 1, rows.length - 1);
+                updateActiveSuggestion();
+            } else if (e.key === 'ArrowUp' && rows.length > 0) {
+                e.preventDefault();
+                activeSuggestionIndex = Math.max(activeSuggestionIndex - 1, 0);
+                updateActiveSuggestion();
+            } else if (e.key === 'Enter') {
+                if (activeSuggestionIndex >= 0 && currentSuggestions[activeSuggestionIndex]) {
+                    e.preventDefault();
+                    selectSuggestion(activeSuggestionIndex);
+                } else {
+                    searchStock();
+                }
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.search-box-wrapper')) {
+                hideSuggestions();
+            }
         });
 
         async function getPrediction() {
@@ -267,6 +444,9 @@
             }
 
             try {
+                
+
+                // Fetch prediction data
                 const response = await fetch(`/api/predict/${symbol}`);
                 const data = await response.json();
 
@@ -291,18 +471,64 @@
                 document.getElementById('predictionResult').classList.add('show');
             } catch (error) {
                 alert('Error getting prediction');
-                console.log(error);
+                console.log('Prediction error:', error);
             }
         }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const predictionInput = document.getElementById('predictionSymbol');
-            if (predictionInput) {
-                predictionInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') getPrediction();
-                });
+        // Update user status
+        if (typeof firebase !== 'undefined') {
+            firebase.auth().onAuthStateChanged((user) => {
+                const userStatus = document.getElementById('user-status');
+                const loginSignupBtn = document.getElementById('login-signup-btn');
+                const logoutBtn = document.getElementById('logout-btn');
+
+                if (user) {
+                    userStatus.textContent = '✓ ' + user.email;
+                    userStatus.classList.remove('guest');
+                    loginSignupBtn.style.display = 'none';
+                    logoutBtn.style.display = 'block';
+                } else {
+                    userStatus.textContent = 'Guest';
+                    userStatus.classList.add('guest');
+                    loginSignupBtn.style.display = 'block';
+                    logoutBtn.style.display = 'none';
+                }
+            });
+        }
+        const predictionInputEl = document.getElementById('predictionSymbol');
+        const predictionDropdown = document.getElementById('predictionSuggestionsDropdown');
+        let predictionDebounce = null;
+
+        predictionInputEl.addEventListener('input', function() {
+            const query = predictionInputEl.value.trim();
+            clearTimeout(predictionDebounce);
+            if (!query) { predictionDropdown.classList.remove('show'); predictionDropdown.innerHTML = ''; return; }
+            predictionDebounce = setTimeout(async () => {
+                const response = await fetch(`/api/search/${encodeURIComponent(query)}`);
+                const data = await response.json();
+                predictionDropdown.innerHTML = data.slice(0, 5).map(item => {
+                    const logo = item.logo
+                        ? `<img class="suggestion-avatar" src="${item.logo}" alt="${item.symbol}" onerror="this.outerHTML = window.__initialsAvatar('${item.symbol.replace(/'/g, "")}')" />`
+                        : initialsAvatar(item.symbol);
+                    return `
+                    <div class="suggestion-item" onclick="document.getElementById('predictionSymbol').value='${item.symbol}'; document.getElementById('predictionSuggestionsDropdown').classList.remove('show');">
+                        ${logo}
+                        <div class="suggestion-info">
+                            <div class="suggestion-symbol">${item.symbol}</div>
+                            <div class="suggestion-name">${item.name}</div>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+                predictionDropdown.classList.add('show');
+            }, 350);
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#prediction-tab .search-box-wrapper')) {
+                predictionDropdown.classList.remove('show');
             }
         });
-    </script>
+    </script>   
 </body>
 </html>
